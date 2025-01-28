@@ -2,7 +2,7 @@ name: CICD
 
 on:
   push:
-    branches: [main,master]
+    branches: [main]
     
 jobs:
   build:
@@ -10,11 +10,19 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
-      - name: Set Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: Install Dependencies
-        run : npm install
-      - name: Test Project
-        run: npm test
+      - name: login to hub
+        run: docker login -u ${{secrets.DOCKER_USER}} -p ${{secrets.DOCKER_PASS}}
+      - name: build image
+        run : docker build -t b15me094/node_app .
+      - name: push to hub
+        run: docker push b15me094/node_app:latest
+  deploy:
+    needs: build
+    runs-on: [self-hosted]
+    steps:
+      - name: pull from hub
+        run: docker pull b15me094/node_app:latest
+      - name: delete old container
+        run: docker rm -f node_app-container
+      - name: run the container
+        run: docker run -d -p 5000:5000 --name node_app-container b15me094/node_app:latest
