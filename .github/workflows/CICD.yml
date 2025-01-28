@@ -16,6 +16,8 @@ jobs:
         run : docker build -t b15me094/node_app .
       - name: push to hub
         run: docker push b15me094/node_app:latest
+
+        
   deploy:
     needs: build
     runs-on: [self-hosted]
